@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zqw.mapper.UserInfomationMapper">
+
+    <resultMap id="userinfo" type="userinfo">
+        <id property="mid" column="mid"/>
+        <result property="name" column="name"/>
+        <result property="sex" column="sex"/>
+        <result property="face" column="face"/>
+        <result property="rank" column="rank"/>
+        <result property="regTime" column="regtime"/>
+        <result property="birthday" column="birthday"/>
+        <result property="sign" column="sign"/>
+        <result property="profile" column="profile"/>
+    </resultMap>
+
+    <insert id="insertAnUserInfo" parameterType="userinfo">
+        INSERT INTO user_info_table
+        (mid, name, sex, face, rank, regtime, birthday, sign, profile)
+        VALUES (#{mid}, #{name}, #{sex}, #{face}, #{rank}, #{regTime}, #{birthday}, #{sign}, #{profile});
+
+    </insert>
+
+    <select id="selectBySex" resultMap="userinfo" parameterType="string">
+        SELECT * FROM user_info_table WHERE sex = #{sex}
+    </select>
+
+    <select id="selectAll" resultMap="userinfo">
+        SELECT * FROM user_info_table;
+    </select>
+
+</mapper>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration   PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+  <typeAliases><!-- 别名 -->
+      <typeAlias alias="user" type="com.zqw.pojo.User"/>
+    <typeAlias alias="userinfo" type="com.zqw.pojo.UserInfo"/>
+  </typeAliases>
+  <!-- 数据库环境 -->
+  <environments default="development">
+    <environment id="development">
+      <transactionManager type="JDBC"/>
+      <dataSource type="POOLED">
+        <property name="driver" value="com.mysql.jdbc.Driver"/>
+        <property name="url" value="jdbc:mysql://localhost:3306/mycrawler"/>
+        <property name="username" value="root"/>
+        <property name="password" value="1926817"/>
+        <property name="poolMaximumActiveConnections" value="100" />
+        <!-- 任意时间可能存在的空闲连接数 默认是5,最好设置为0,否则可能会崩溃掉 -->
+        <property name="poolMaximumIdleConnections" value="0" />
+      </dataSource>
+    </environment>
+  </environments>
+  <!-- 映射文件 -->
+  <mappers>
+    <package name="com.zqw.mapper"/>
+  </mappers>
+</configuration>
