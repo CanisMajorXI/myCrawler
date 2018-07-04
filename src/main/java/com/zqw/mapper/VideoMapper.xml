@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zqw.mapper.VideoMapper">
+  <resultMap id="BaseResultMap" type="com.zqw.pojo.Video">
+    <id column="aid" jdbcType="INTEGER" property="aid" />
+    <result column="mid" jdbcType="INTEGER" property="mid" />
+    <result column="description" jdbcType="VARCHAR" property="description" />
+    <result column="title" jdbcType="VARCHAR" property="title" />
+    <result column="author" jdbcType="VARCHAR" property="author" />
+    <result column="pic" jdbcType="VARCHAR" property="pic" />
+  </resultMap>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    delete from video_table
+    where aid = #{aid,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="com.zqw.pojo.Video">
+    insert into video_table (aid, mid, description, 
+      title, author, pic)
+    values (#{aid,jdbcType=INTEGER}, #{mid,jdbcType=INTEGER}, #{description,jdbcType=VARCHAR}, 
+      #{title,jdbcType=VARCHAR}, #{author,jdbcType=VARCHAR}, #{pic,jdbcType=VARCHAR})
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="com.zqw.pojo.Video">
+    update video_table
+    set mid = #{mid,jdbcType=INTEGER},
+      description = #{description,jdbcType=VARCHAR},
+      title = #{title,jdbcType=VARCHAR},
+      author = #{author,jdbcType=VARCHAR},
+      pic = #{pic,jdbcType=VARCHAR}
+    where aid = #{aid,jdbcType=INTEGER}
+  </update>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select aid, mid, description, title, author, pic
+    from video_table
+    where aid = #{aid,jdbcType=INTEGER}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap">
+    select aid, mid, description, title, author, pic
+    from video_table
+  </select>
+</mapper>

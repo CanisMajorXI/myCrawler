@@ -3,12 +3,15 @@ package com.zqw.crawlers.userscrawler;
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 import com.zqw.persistent.SaveUserInfo;
+import com.zqw.persistent.SaveVideoInfo;
 import com.zqw.pojo.User;
 import com.zqw.pojo.UserInfo;
+import com.zqw.pojo.Video;
 import okhttp3.*;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -16,7 +19,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class Main {
     //    private Logger logger = Logger.getLogger(this.getClass());
-    private static final int MAX_COUNT = 1500;
+    private static final int MAX_COUNT = 20;
     private volatile Set<Integer> foundUsers = new HashSet<>(200);
     private ReentrantReadWriteLock idLock = new ReentrantReadWriteLock();
     private ReentrantReadWriteLock countLock = new ReentrantReadWriteLock();
@@ -87,25 +90,27 @@ public class Main {
             String content = null;
             try {
                 Response response = okHttpClient.newCall(request).execute();
-                if(response.code() == 200)
-                    content = response.body().string();
+                if (response.code() == 200)
+                    content = Objects.requireNonNull(response.body()).string();
                 else {
                     System.out.println("错误代码！");
                     throw new Exception();
                 }
             } catch (Exception e) {
                 System.out.println(mid + "爬取用户信息时发生异常！");
-             //   e.printStackTrace();
+                //   e.printStackTrace();
                 return;
             }
-            System.out.println("------已爬取的个数:"+getCurCountSecurely()+"当前爬取用户: "+mid+"------");
+            System.out.println("------已爬取的个数:" + getCurCountSecurely() + "当前爬取用户: " + mid + "------");
+            if (!singleService.isShutdown())
                 singleService.execute(new FansRunnable(mid));
             Gson gson = new Gson();
             JsonParser parser = new JsonParser();
             JsonObject dataObj = parser.parse(content).getAsJsonObject().get("data").getAsJsonObject();
             UserInfo userInfo = gson.fromJson(dataObj, UserInfo.class);
-           // System.out.println(userInfo.getName()+" "+userInfo.getSign());
-            SaveUserInfo.save(userInfo);
+            if (!service.isShutdown()) service.execute(new VideoRunnable(mid));
+            // System.out.println(userInfo.getName()+" "+userInfo.getSign());
+            //SaveUserInfo.save(userInfo);
         }
     }
 
@@ -128,8 +133,8 @@ public class Main {
             String content = null;
             try {
                 Response response = okHttpClient.newCall(request).execute();
-                if(response.code() == 200)
-                content = response.body().string();
+                if (response.code() == 200)
+                    content = response.body() != null ? response.body().string() : "";
                 else {
                     System.out.println("错误代码！");
                     throw new Exception();
@@ -143,31 +148,62 @@ public class Main {
             JsonParser parser = new JsonParser();
             JsonArray fans = parser.parse(content).
                     getAsJsonObject().get("data").getAsJsonObject().get("list").getAsJsonArray();
-            for(JsonElement element:fans) {
+            for (JsonElement element : fans) {
                 int mid = element.getAsJsonObject().get("mid").getAsInt();
-                if(!foundUsers.contains(mid) && getCurCountSecurely() < MAX_COUNT) {
+                if (!foundUsers.contains(mid) && getCurCountSecurely() < MAX_COUNT) {
                     try {
                         Thread.sleep(1000);
-                    }catch (Exception e){
+                    } catch (Exception e) {
                         e.printStackTrace();
                     }
                     addAnIdIntoList(mid);
                     addCurCountSecurely();
-                   service.execute(new UserInfoRunnable(mid));
+                    if (!service.isShutdown()) service.execute(new UserInfoRunnable(mid));
+                } else {
+                    service.shutdown();
+                    singleService.shutdown();
                 }
             }
         }
     }
 
-    private class VideoRunnable implements Runnable{
+    private class VideoRunnable implements Runnable {
         private int mid;
 
         VideoRunnable(int mid) {
             this.mid = mid;
         }
+
         @Override
         public void run() {
-
+            Request request = new Request.Builder()
+                    .url("https://space.bilibili.com/ajax/member/getSubmitVideos?mid=" + mid + "&page=1&pagesize=25")
+                    .build();
+            String content = null;
+            try {
+                Response response = okHttpClient.newCall(request).execute();
+                if (response.code() == 200) {
+                    content = response.body() != null ? response.body().string() : "";
+                    System.out.println(content);
+                } else {
+                    System.out.println("错误代码！");
+                    throw new Exception();
+                }
+            } catch (Exception e) {
+                System.out.println(mid + "爬取视频信息时发生异常！");
+                //   e.printStackTrace();
+                return;
+            }
+            Gson gson = new Gson();
+            JsonParser jsonParser = new JsonParser();
+            JsonArray jsonList = jsonParser.parse(content)
+                    .getAsJsonObject()
+                    .get("data")
+                    .getAsJsonObject()
+                    .get("vlist").getAsJsonArray();
+            List<Video> videoList = gson.fromJson(jsonList, new TypeToken<List<Video>>() {
+            }.getType());
+            SaveVideoInfo.save(videoList);
         }
     }
 }

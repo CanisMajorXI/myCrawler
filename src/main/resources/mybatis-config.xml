@@ -12,9 +12,9 @@
       <transactionManager type="JDBC"/>
       <dataSource type="POOLED">
         <property name="driver" value="com.mysql.jdbc.Driver"/>
-        <property name="url" value="jdbc:mysql://localhost:3306/mycrawler"/>
+        <property name="url" value="jdbc:mysql://173.230.157.104:3306/mycrawler"/>
         <property name="username" value="root"/>
-        <property name="password" value="1926817"/>
+        <property name="password" value="jiangzemin"/>
         <property name="poolMaximumActiveConnections" value="100" />
         <!-- 任意时间可能存在的空闲连接数 默认是5,最好设置为0,否则可能会崩溃掉 -->
         <property name="poolMaximumIdleConnections" value="0" />
